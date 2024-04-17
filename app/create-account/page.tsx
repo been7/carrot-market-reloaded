@@ -1,13 +1,14 @@
 "use client";
 
+import { PASSWORD_MIN_LENGTH } from "@/lib/constants";
 import { useFormState } from "react-dom";
-import FormButton from "../components/form-btn";
-import FormInput from "../components/form-input";
+import Button from "../components/button";
+import Input from "../components/input";
 import SocialLogin from "../components/social-login";
 import { createAccount } from "./action";
 
 export default function CreateAccount() {
-  const [state, action] = useFormState(createAccount, null);
+  const [state, dispatch] = useFormState(createAccount, null);
 
   return (
     <div className="flex flex-col gap-10">
@@ -15,30 +16,32 @@ export default function CreateAccount() {
         <h1 className="text-2xl">안녕하세요!</h1>
         <h2 className="text-xl">Fill in the form below to join!</h2>
       </div>
-      <form action={action} className="flex flex-col gap-3">
-        <FormInput
+      <form action={dispatch} className="flex flex-col gap-3">
+        <Input
           name="username"
           type="text"
           placeholder="Username"
           required
           errors={state?.fieldErrors.username}
         />
-        <FormInput name="email" type="email" placeholder="Email" required />
-        <FormInput
+        <Input name="email" type="email" placeholder="Email" required />
+        <Input
           name="password"
           type="password"
           placeholder="Password"
           required
           errors={state?.fieldErrors.password}
+          minLength={PASSWORD_MIN_LENGTH}
         />
-        <FormInput
-          name="confirmPassword"
+        <Input
+          name="confirm_password"
           type="password"
           placeholder="Confirm Password"
           required
-          errors={state?.fieldErrors.confirmPassword}
+          errors={state?.fieldErrors.confirm_password}
+          minLength={PASSWORD_MIN_LENGTH}
         />
-        <FormButton text="Create account" />{" "}
+        <Button text="Create account" />{" "}
       </form>
       <SocialLogin />
     </div>
