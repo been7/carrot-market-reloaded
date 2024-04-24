@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  username String @unique
+  email String? @unique
+  password String?
+  phone String? @unique
+  github_id String? @unique
+  avatar String?
+  created_at DateTime @default(now()) // 생성될 때의 시간 가져dha.
+  updated_at DateTime @updatedAt // 수정할 때마다
+}
