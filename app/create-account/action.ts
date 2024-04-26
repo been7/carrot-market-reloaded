@@ -1,12 +1,9 @@
 "use server";
-import {
-  PASSWORD_MIN_LENGTH,
-  PASSWORD_REGEX,
-  PASSWORD_REGEX_ERROR,
-} from "@/lib/constants";
+import { PASSWORD_MIN_LENGTH } from "@/lib/constants";
+import db from "@/lib/db";
 import { z } from "zod";
 
-const checkUsername = (username: string) => !username.includes("당근");
+const checkUsername = (username: string) => !username.includes("potato");
 
 const checkPassword = ({
   password,
@@ -15,6 +12,30 @@ const checkPassword = ({
   password: string;
   confirm_password: string;
 }) => password === confirm_password;
+
+const checkUniqueUsername = async (username: string) => {
+  const user = await db.user.findUnique({
+    where: {
+      username,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return !Boolean(user);
+};
+
+const checkUniqueEmail = async (email: string) => {
+  const user = await db.user.findUnique({
+    where: {
+      email,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return Boolean(user) === false;
+};
 
 const formSchema = z
   .object({
@@ -26,18 +47,20 @@ const formSchema = z
       })
       .toLowerCase()
       .trim()
-      .transform((username) => `🔥${username}🔥`)
-      .refine(checkUsername, "custom error"),
+      //.transform((username) => `🔥${username}🔥`)
+      .refine(checkUsername, "custom error")
+      .refine(checkUniqueUsername, "이미 사용중인 이름입니다."),
     email: z
       .string({ invalid_type_error: "이메일 형식에 맞게 입력하세요." })
       .toLowerCase()
-      .email(),
+      .email()
+      .refine(checkUniqueEmail, "이미 사용중인 이메일입니다."),
     password: z
       .string({
         required_error: "패스워드를 입력하세요.",
       })
-      .min(PASSWORD_MIN_LENGTH)
-      .regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
+      .min(PASSWORD_MIN_LENGTH),
+    //.regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
     confirm_password: z.string().min(PASSWORD_MIN_LENGTH),
   })
   .refine(checkPassword, {
@@ -52,8 +75,15 @@ export async function createAccount(prevState: any, formData: FormData) {
     password: formData.get("password"),
     confirm_password: formData.get("confirm_password"),
   };
-  const result = formSchema.safeParse(data);
+  const result = await formSchema.safeParseAsync(data);
   if (!result.success) {
     return result.error.flatten();
-  } else console.log(result.data);
+  } else {
+    // check if username is taken
+    // check if the email is already used
+    // hash password
+    // save the user to db
+    // log the user in
+    // redirect '/home'
+  }
 }
