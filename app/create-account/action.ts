@@ -1,6 +1,8 @@
 "use server";
 import { PASSWORD_MIN_LENGTH } from "@/lib/constants";
 import db from "@/lib/db";
+import getSession from "@/lib/session";
+import bcrypt from "bcrypt";
 import { z } from "zod";
 
 const checkUsername = (username: string) => !username.includes("potato");
@@ -75,15 +77,29 @@ export async function createAccount(prevState: any, formData: FormData) {
     password: formData.get("password"),
     confirm_password: formData.get("confirm_password"),
   };
-  const result = await formSchema.safeParseAsync(data);
+  const result = await formSchema.spa(data);
   if (!result.success) {
     return result.error.flatten();
   } else {
     // check if username is taken
     // check if the email is already used
     // hash password
+    const hashedPassword = await bcrypt.hash(result.data.password, 12); // 알고리즘 몇번 돌릴건지?
     // save the user to db
+    const user = await db.user.create({
+      data: {
+        username: result.data.username,
+        email: result.data.email,
+        password: hashedPassword,
+      },
+      select: {
+        id: true,
+      },
+    });
     // log the user in
+    const session = await getSession();
+    session.id = user.id;
+    await session.save();
     // redirect '/home'
   }
 }
