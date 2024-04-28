@@ -15,30 +15,6 @@ const checkPassword = ({
   confirm_password: string;
 }) => password === confirm_password;
 
-const checkUniqueUsername = async (username: string) => {
-  const user = await db.user.findUnique({
-    where: {
-      username,
-    },
-    select: {
-      id: true,
-    },
-  });
-  return !Boolean(user);
-};
-
-const checkUniqueEmail = async (email: string) => {
-  const user = await db.user.findUnique({
-    where: {
-      email,
-    },
-    select: {
-      id: true,
-    },
-  });
-  return Boolean(user) === false;
-};
-
 const formSchema = z
   .object({
     // 기본 required -> 선택사항 .optional
@@ -50,13 +26,11 @@ const formSchema = z
       .toLowerCase()
       .trim()
       //.transform((username) => `🔥${username}🔥`)
-      .refine(checkUsername, "custom error")
-      .refine(checkUniqueUsername, "이미 사용중인 이름입니다."),
+      .refine(checkUsername, "custom error"),
     email: z
       .string({ invalid_type_error: "이메일 형식에 맞게 입력하세요." })
       .toLowerCase()
-      .email()
-      .refine(checkUniqueEmail, "이미 사용중인 이메일입니다."),
+      .email(),
     password: z
       .string({
         required_error: "패스워드를 입력하세요.",
@@ -65,10 +39,49 @@ const formSchema = z
     //.regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
     confirm_password: z.string().min(PASSWORD_MIN_LENGTH),
   })
+  .superRefine(async ({ username }, ctx) => {
+    const user = await db.user.findUnique({
+      where: {
+        username,
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (user) {
+      ctx.addIssue({
+        code: "custom",
+        message: "이미 사용중인 이름입니다.",
+        path: ["username"],
+        fatal: true,
+      });
+      return z.NEVER;
+    }
+  })
+  .superRefine(async ({ email }, ctx) => {
+    const user = await db.user.findUnique({
+      where: {
+        email,
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (user) {
+      ctx.addIssue({
+        code: "custom",
+        message: "이미 사용중인 이메일입니다.",
+        path: ["email"],
+        fatal: true,
+      });
+      return z.NEVER;
+    }
+  })
   .refine(checkPassword, {
     message: "패스워드가 일치하지 않습니다.",
     path: ["confirm_password"],
   });
+
 export async function createAccount(prevState: any, formData: FormData) {
   const data = {
     // get.('input name과 같아야함')
@@ -79,6 +92,7 @@ export async function createAccount(prevState: any, formData: FormData) {
   };
   const result = await formSchema.spa(data);
   if (!result.success) {
+    console.log(result.error.flatten());
     return result.error.flatten();
   } else {
     // check if username is taken
