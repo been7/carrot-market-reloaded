@@ -23,6 +23,7 @@ const formSchema = z
         invalid_type_error: "유저명은 글자만 가능합니다.",
         required_error: "유저명을 찾을 수 없습니다.",
       })
+      .min(5)
       .toLowerCase()
       .trim()
       //.transform((username) => `🔥${username}🔥`)

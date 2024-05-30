@@ -2,9 +2,9 @@
 
 import { PASSWORD_MIN_LENGTH } from "@/lib/constants";
 import { useFormState } from "react-dom";
-import Button from "../components/button";
-import Input from "../components/input";
-import SocialLogin from "../components/social-login";
+import Button from "../../components/button";
+import Input from "../../components/input";
+import SocialLogin from "../../components/social-login";
 import { createAccount } from "./action";
 
 export default function CreateAccount() {

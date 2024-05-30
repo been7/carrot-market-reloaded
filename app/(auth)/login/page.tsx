@@ -1,9 +1,9 @@
 "use client";
 import { PASSWORD_MIN_LENGTH } from "@/lib/constants";
 import { useFormState } from "react-dom";
-import FormButton from "../components/button";
-import FormInput from "../components/input";
-import SocialLogin from "../components/social-login";
+import Button from "../../components/button";
+import Input from "../../components/input";
+import SocialLogin from "../../components/social-login";
 import { login } from "./action";
 
 export default function Login() {
@@ -16,14 +16,14 @@ export default function Login() {
         <h2 className="text-xl">Log in with email and password.</h2>
       </div>
       <form action={dispatch} className="flex flex-col gap-3">
-        <FormInput
+        <Input
           name="email"
           type="email"
           placeholder="Email"
           required
           errors={state?.fieldErrors.email}
         />
-        <FormInput
+        <Input
           name="password"
           type="password"
           placeholder="Password"
@@ -31,7 +31,7 @@ export default function Login() {
           minLength={PASSWORD_MIN_LENGTH}
           errors={state?.fieldErrors.password}
         />
-        <FormButton text="Login" /> <SocialLogin />
+        <Button text="Login" /> <SocialLogin />
       </form>
     </div>
   );
